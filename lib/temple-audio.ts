@@ -62,6 +62,85 @@ export function playDiyaTone() {
   osc.stop(now + 1.3)
 }
 
+/** Short single tone helper. */
+function playTone(freq: number, duration: number, gain = 0.1) {
+  const ctx = getCtx()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const osc = ctx.createOscillator()
+  const g = ctx.createGain()
+  osc.type = 'sine'
+  osc.frequency.setValueAtTime(freq, now)
+  g.gain.setValueAtTime(0.0001, now)
+  g.gain.exponentialRampToValueAtTime(gain, now + 0.02)
+  g.gain.exponentialRampToValueAtTime(0.0001, now + duration)
+  osc.connect(g)
+  g.connect(ctx.destination)
+  osc.start(now)
+  osc.stop(now + duration + 0.1)
+}
+
+/** Bhog offering tone — 396Hz, 300ms. */
+export function playBhogTone() {
+  playTone(396, 0.4, 0.12)
+}
+
+/** Dhoop incense tone — 639Hz, 300ms. */
+export function playDhoopTone() {
+  playTone(639, 0.4, 0.09)
+}
+
+/** Mala tone — 741Hz, 250ms. */
+export function playMalaTone() {
+  playTone(741, 0.3, 0.09)
+}
+
+/** Aarti start — dual warm tone 528Hz + 440Hz. */
+export function playAartiTone() {
+  const ctx = getCtx()
+  if (!ctx) return
+  const now = ctx.currentTime
+  ;[528, 440].forEach((f) => {
+    const osc = ctx.createOscillator()
+    const g = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(f, now)
+    g.gain.setValueAtTime(0.0001, now)
+    g.gain.exponentialRampToValueAtTime(0.08, now + 0.05)
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.6)
+    osc.connect(g)
+    g.connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.7)
+  })
+}
+
+/** Soft tick when the aarti plate crosses each quarter rotation. */
+export function playAartiTick() {
+  playTone(880, 0.12, 0.05)
+}
+
+/** Triumphant completion chord when aarti finishes. */
+export function playAartiComplete() {
+  const ctx = getCtx()
+  if (!ctx) return
+  const now = ctx.currentTime
+  const chord = [523.25, 659.25, 783.99, 1046.5]
+  chord.forEach((f, i) => {
+    const osc = ctx.createOscillator()
+    const g = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(f, now + i * 0.07)
+    g.gain.setValueAtTime(0.0001, now + i * 0.07)
+    g.gain.exponentialRampToValueAtTime(0.12, now + i * 0.07 + 0.03)
+    g.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.07 + 1.8)
+    osc.connect(g)
+    g.connect(ctx.destination)
+    osc.start(now + i * 0.07)
+    osc.stop(now + i * 0.07 + 2)
+  })
+}
+
 /** Gentle chime for flower offering. */
 export function playFlowerTone() {
   const ctx = getCtx()
