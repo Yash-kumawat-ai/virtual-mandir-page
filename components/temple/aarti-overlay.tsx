@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useLang } from '@/lib/i18n'
 import {
   playAartiTick,
   playAartiComplete,
@@ -29,6 +30,7 @@ export function AartiOverlay({
   onComplete: () => void
   onClose: () => void
 }) {
+  const { t } = useLang()
   const containerRef = useRef<HTMLDivElement>(null)
   const lastAngle = useRef<number | null>(null)
   const accumulated = useRef(0)
@@ -148,10 +150,10 @@ export function AartiOverlay({
             className="absolute top-[14%] right-0 left-0 flex flex-col items-center gap-1 px-6 text-center"
           >
             <p className="font-serif text-lg text-cream drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              {'उंगली घुमाएं'}
+              {t('aartiInstruction')}
             </p>
             <p className="text-xs tracking-wide text-cream-muted italic">
-              Move your finger in circles to offer aarti
+              {t('aartiHint')}
             </p>
             {/* Rotation progress dots */}
             <div className="mt-2 flex items-center gap-2">
@@ -233,7 +235,7 @@ export function AartiOverlay({
               onClick={onClose}
               className="absolute right-4 bottom-24 rounded-full border border-cream/30 bg-black/40 px-4 py-1.5 font-serif text-xs text-cream backdrop-blur-sm"
             >
-              {'बंद करें'}
+              {t('close')}
             </button>
           )}
         </motion.div>

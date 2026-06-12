@@ -62,6 +62,35 @@ export function playDiyaTone() {
   osc.stop(now + 1.3)
 }
 
+/** Conch (shankh) blow — a long, breathy resonant note that swells then fades. */
+export function playShankhTone() {
+  const ctx = getCtx()
+  if (!ctx) return
+  const now = ctx.currentTime
+  // Two slightly detuned saw oscillators give the reedy conch timbre
+  const freqs = [196, 197.5, 294]
+  freqs.forEach((f, i) => {
+    const osc = ctx.createOscillator()
+    const g = ctx.createGain()
+    osc.type = i === 2 ? 'sine' : 'sawtooth'
+    osc.frequency.setValueAtTime(f * 0.96, now)
+    osc.frequency.exponentialRampToValueAtTime(f, now + 0.5)
+    g.gain.setValueAtTime(0.0001, now)
+    g.gain.exponentialRampToValueAtTime(i === 2 ? 0.05 : 0.09, now + 0.45)
+    g.gain.setValueAtTime(i === 2 ? 0.05 : 0.09, now + 1.6)
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 2.6)
+    // gentle lowpass to soften the saw
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.setValueAtTime(1400, now)
+    osc.connect(filter)
+    filter.connect(g)
+    g.connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 2.7)
+  })
+}
+
 /** Short single tone helper. */
 function playTone(freq: number, duration: number, gain = 0.1) {
   const ctx = getCtx()

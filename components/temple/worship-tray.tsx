@@ -1,15 +1,25 @@
 'use client'
 
-export type PujaAction = 'flowers' | 'aarti' | 'bhog' | 'dhoop' | 'mala'
+import { useLang } from '@/lib/i18n'
+
+export type PujaAction =
+  | 'flowers'
+  | 'aarti'
+  | 'diya'
+  | 'shankh'
+  | 'bell'
+  | 'bhog'
+  | 'dhoop'
+  | 'mala'
 
 const ACTIONS: {
   id: PujaAction
-  label: string
+  labelKey: 'flowers' | 'aarti' | 'diya' | 'shankh' | 'bell' | 'bhog' | 'dhoop' | 'mala'
   icon: React.ReactNode
 }[] = [
   {
     id: 'flowers',
-    label: 'फूल',
+    labelKey: 'flowers',
     icon: (
       <img
         src="/images/marigold.png"
@@ -20,21 +30,52 @@ const ACTIONS: {
   },
   {
     id: 'aarti',
-    label: 'आरती',
-    icon: (
-      <img src="/images/diya.png" alt="" className="h-7 w-7 object-contain" />
-    ),
-  },
-  {
-    id: 'bhog',
-    label: 'भोग',
+    labelKey: 'aarti',
     icon: (
       <img src="/images/thali.png" alt="" className="h-7 w-7 object-contain" />
     ),
   },
   {
+    id: 'diya',
+    labelKey: 'diya',
+    icon: (
+      <img src="/images/diya.png" alt="" className="h-7 w-7 object-contain" />
+    ),
+  },
+  {
+    id: 'shankh',
+    labelKey: 'shankh',
+    icon: (
+      <img src="/images/shankh.png" alt="" className="h-7 w-7 object-contain" />
+    ),
+  },
+  {
+    id: 'bell',
+    labelKey: 'bell',
+    icon: (
+      <img src="/images/bell.png" alt="" className="h-7 w-7 object-contain" />
+    ),
+  },
+  {
+    id: 'bhog',
+    labelKey: 'bhog',
+    icon: (
+      // Bhog laddu / sweet offering
+      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
+        <circle cx="12" cy="13" r="6" fill="#e9a23b" />
+        <circle cx="9.5" cy="11" r="1" fill="#c9802a" />
+        <circle cx="13.5" cy="10.5" r="1" fill="#c9802a" />
+        <circle cx="14" cy="14" r="1" fill="#c9802a" />
+        <circle cx="10" cy="15" r="1" fill="#c9802a" />
+        <circle cx="12" cy="13" r="1" fill="#c9802a" />
+        <path d="M12 7V4" stroke="#d4a853" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="12" cy="3.5" r="1.2" fill="#f97316" />
+      </svg>
+    ),
+  },
+  {
     id: 'dhoop',
-    label: 'धूप',
+    labelKey: 'dhoop',
     icon: (
       // Incense stick with smoke
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
@@ -57,7 +98,7 @@ const ACTIONS: {
   },
   {
     id: 'mala',
-    label: 'माला',
+    labelKey: 'mala',
     icon: (
       // Prayer beads
       <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
@@ -81,27 +122,31 @@ export function WorshipTray({
   onAction: (action: PujaAction) => void
   disabled?: boolean
 }) {
+  const { t } = useLang()
   return (
     <nav
-      aria-label="Puja offerings"
-      className="absolute right-0 bottom-0 left-0 z-50 flex h-20 items-center justify-around border-t border-gold/30 bg-gradient-to-t from-[#0d0705] to-[#0d0705]/95 px-2"
+      aria-label={t('offeringsLabel')}
+      className="absolute right-0 bottom-0 left-0 z-50 border-t border-gold/30 bg-gradient-to-t from-[#0d0705] to-[#0d0705]/95"
     >
-      {ACTIONS.map((action) => (
-        <button
-          key={action.id}
-          type="button"
-          disabled={disabled}
-          onClick={() => onAction(action.id)}
-          className="group flex flex-col items-center gap-0.5 focus-visible:outline-none disabled:opacity-50"
-        >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-gold/50 bg-gold/10 transition-all duration-150 group-active:scale-90 group-active:border-saffron group-active:bg-saffron/30">
-            {action.icon}
-          </span>
-          <span className="font-serif text-[11px] text-cream-muted">
-            {action.label}
-          </span>
-        </button>
-      ))}
+      <ul className="no-scrollbar flex items-center gap-1 overflow-x-auto px-3 py-2.5">
+        {ACTIONS.map((action) => (
+          <li key={action.id} className="shrink-0">
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => onAction(action.id)}
+              className="group flex w-[68px] flex-col items-center gap-1 focus-visible:outline-none disabled:opacity-50"
+            >
+              <span className="flex h-12 w-12 items-center justify-center rounded-full border-[1.5px] border-gold/50 bg-gold/10 transition-all duration-150 group-active:scale-90 group-active:border-saffron group-active:bg-saffron/30">
+                {action.icon}
+              </span>
+              <span className="font-serif text-[11px] whitespace-nowrap text-cream-muted">
+                {t(action.labelKey)}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
     </nav>
   )
 }

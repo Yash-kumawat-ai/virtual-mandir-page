@@ -1,9 +1,12 @@
 import { DarshanScreen } from '@/components/temple/darshan-screen'
+import { LanguageProvider } from '@/lib/i18n'
 
 export default function TemplePage() {
   return (
     <main className="h-svh overflow-hidden bg-[#0d0705]">
-      <DarshanScreen />
+      <LanguageProvider>
+        <DarshanScreen />
+      </LanguageProvider>
     </main>
   )
 }

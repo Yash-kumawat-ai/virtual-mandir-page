@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { deities } from '@/lib/deities'
+import { useLang } from '@/lib/i18n'
 
 /**
  * Bottom sheet deity selector — kept off the main screen so the
@@ -18,6 +19,7 @@ export function DeitySheet({
   onSelect: (index: number) => void
   onClose: () => void
 }) {
+  const { t, lang } = useLang()
   return (
     <AnimatePresence>
       {open && (
@@ -41,10 +43,10 @@ export function DeitySheet({
           >
             <div className="mx-auto mt-2.5 h-1 w-10 rounded-full bg-cream/25" />
             <h2 className="px-5 pt-3 pb-1 font-serif text-lg text-gold">
-              {'देवता चुनें'}
+              {t('chooseDeityTitle')}
             </h2>
             <p className="px-5 pb-3 text-xs text-cream-muted italic">
-              Choose your deity for darshan
+              {t('chooseDeitySubtitle')}
             </p>
             <div className="no-scrollbar flex gap-4 overflow-x-auto px-5 py-2">
               {deities.map((deity, i) => (
@@ -75,7 +77,7 @@ export function DeitySheet({
                       i === activeIndex ? 'text-saffron' : 'text-cream-muted'
                     }`}
                   >
-                    {deity.nameHindi}
+                    {lang === 'hi' ? deity.nameHindi : deity.nameEnglish}
                   </span>
                 </button>
               ))}

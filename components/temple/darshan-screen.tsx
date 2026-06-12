@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 import { deities } from '@/lib/deities'
+import { useLang } from '@/lib/i18n'
 import {
   playBellChime,
   playFlowerTone,
@@ -11,6 +12,8 @@ import {
   playBhogTone,
   playDhoopTone,
   playMalaTone,
+  playDiyaTone,
+  playShankhTone,
 } from '@/lib/temple-audio'
 import { TempleGates } from './temple-gates'
 import { HangingBells } from './hanging-bells'
@@ -22,6 +25,7 @@ import { DeitySheet } from './deity-sheet'
 const XP_KEY = 'mandir-bhakti-xp'
 
 export function DarshanScreen() {
+  const { t, lang, toggle } = useLang()
   const [gatesOpen, setGatesOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   const [deityVisible, setDeityVisible] = useState(true)
@@ -35,6 +39,7 @@ export function DarshanScreen() {
   const [aartiOpen, setAartiOpen] = useState(false)
   const [bhogActive, setBhogActive] = useState(false)
   const [dhoopActive, setDhoopActive] = useState(false)
+  const [diyaActive, setDiyaActive] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [xp, setXp] = useState(0)
 
@@ -115,6 +120,26 @@ export function DarshanScreen() {
           addXp(5)
           setTimeout(() => setDhoopActive(false), 5000)
           break
+        case 'diya':
+          playDiyaTone()
+          setDiyaActive(true)
+          pulseGlow()
+          addXp(5)
+          showToast(t('diyaLit'))
+          setTimeout(() => setDiyaActive(false), 4000)
+          break
+        case 'shankh':
+          playShankhTone()
+          setIntenseGlow(true)
+          addXp(10)
+          showToast(t('shankhBlown'))
+          setTimeout(() => setIntenseGlow(false), 1100)
+          break
+        case 'bell':
+          playBellChime()
+          pulseGlow()
+          addXp(5)
+          break
         case 'mala':
           playMalaTone()
           pulseGlow()
@@ -123,16 +148,16 @@ export function DarshanScreen() {
           break
       }
     },
-    [pulseGlow, addXp],
+    [pulseGlow, addXp, showToast, t],
   )
 
   const onAartiComplete = useCallback(() => {
     setIntenseGlow(true)
     setBurst((b) => b + 1)
     addXp(20)
-    showToast('🙏 आरती सम्पन्न — आपको आशीर्वाद मिला')
+    showToast(t('aartiDone'))
     setTimeout(() => setIntenseGlow(false), 1100)
-  }, [addXp, showToast])
+  }, [addXp, showToast, t])
 
   const deityFilter = intenseGlow
     ? 'drop-shadow(0 0 120px rgba(249,115,22,0.7))'
@@ -249,6 +274,21 @@ export function DarshanScreen() {
         )}
       </AnimatePresence>
 
+      {/* Diya flame glows at deity feet */}
+      <AnimatePresence>
+        {diyaActive && (
+          <motion.img
+            src="/images/diya.png"
+            alt=""
+            initial={{ opacity: 0, y: 60, scale: 0.7 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="diya-glow pointer-events-none absolute bottom-24 left-1/2 z-30 h-20 w-20 -translate-x-1/2 object-contain"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Header — minimal, 44px */}
       <header className="absolute top-0 right-0 left-0 z-50 flex h-11 items-center justify-between px-3">
         <button
@@ -256,20 +296,36 @@ export function DarshanScreen() {
           onClick={() => setSheetOpen(true)}
           className="flex items-center gap-1 rounded-full border border-gold/30 bg-black/35 px-3 py-1 font-serif text-xs text-cream backdrop-blur-sm"
         >
-          {'देवता बदलें'}
+          {t('changeDeity')}
           <ChevronDown className="h-3 w-3" />
         </button>
         <motion.h1
-          key={deity.id}
+          key={`${deity.id}-${lang}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="absolute left-1/2 -translate-x-1/2 font-serif text-base text-gold drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]"
         >
-          {deity.nameHindi}
+          {lang === 'hi' ? deity.nameHindi : deity.nameEnglish}
         </motion.h1>
-        <span className="rounded-full border border-gold/30 bg-black/35 px-2.5 py-1 text-xs text-gold backdrop-blur-sm">
-          {`🙏 ${xp}`}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label="Toggle language"
+            className="rounded-full border border-gold/30 bg-black/35 px-2.5 py-1 font-serif text-xs text-cream backdrop-blur-sm transition-colors active:bg-saffron/30"
+          >
+            <span className={lang === 'hi' ? 'text-saffron' : 'text-cream-muted'}>
+              {'हिं'}
+            </span>
+            <span className="mx-1 text-gold/40">{'/'}</span>
+            <span className={lang === 'en' ? 'text-saffron' : 'text-cream-muted'}>
+              {'EN'}
+            </span>
+          </button>
+          <span className="rounded-full border border-gold/30 bg-black/35 px-2.5 py-1 text-xs text-gold backdrop-blur-sm">
+            {`🙏 ${xp}`}
+          </span>
+        </div>
       </header>
 
       {/* Jaikara below header */}
