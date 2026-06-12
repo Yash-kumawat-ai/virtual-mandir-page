@@ -236,3 +236,258 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ---- Darshan screen ---- */
+
+/* Divine rotating light rays behind the deity */
+.halo-rays {
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 240, 200, 0.09) 0deg 8deg,
+    transparent 8deg 45deg
+  );
+  border-radius: 50%;
+  mask-image: radial-gradient(circle, black 0%, transparent 68%);
+  -webkit-mask-image: radial-gradient(circle, black 0%, transparent 68%);
+  animation: halo-rotate 60s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes halo-rotate {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* Bell idle sway */
+@keyframes bell-idle-left {
+  0%,
+  100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes bell-idle-right {
+  0%,
+  100% {
+    transform: rotate(3deg);
+  }
+  50% {
+    transform: rotate(-3deg);
+  }
+}
+
+.bell-idle-left {
+  animation: bell-idle-left 4s ease-in-out infinite;
+}
+
+.bell-idle-right {
+  animation: bell-idle-right 4s ease-in-out infinite 2s;
+}
+
+/* Vigorous bell ring on tap */
+@keyframes bell-ring {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-20deg);
+  }
+  75% {
+    transform: rotate(20deg);
+  }
+}
+
+.bell-ringing {
+  animation: bell-ring 0.18s ease-in-out 6;
+}
+
+/* Continuous ringing for the hand-bell ritual overlay */
+.bell-ring-loop {
+  animation: bell-ring 0.35s ease-in-out infinite;
+}
+
+/* Swipe-up hint bounce */
+@keyframes swipe-hint-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+.swipe-hint-bounce {
+  animation: swipe-hint-bounce 1.6s ease-in-out infinite;
+}
+
+/* Golden bell spark */
+@keyframes bell-spark {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--spark-x, 30px), var(--spark-y, -30px)) scale(0.2);
+    opacity: 0;
+  }
+}
+
+.bell-spark {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #ffd886;
+  box-shadow: 0 0 8px rgba(255, 216, 134, 0.9);
+  animation: bell-spark 0.8s ease-out forwards;
+}
+
+/* Floating karma text */
+@keyframes karma-float {
+  0% {
+    transform: translate(-50%, 0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -34px);
+    opacity: 0;
+  }
+}
+
+.karma-float {
+  animation: karma-float 1.3s ease-out forwards;
+}
+
+/* Zone-targeted flower fall — flowers fall from above and settle into a
+   deity zone, swaying and rotating, then fade exactly where they land */
+@keyframes flower-fall {
+  0% {
+    transform: translate(-50%, var(--fall-start, -10vh)) rotate(0deg) scale(0.85);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--fall-sway, 0px)), var(--fall-end, 50vh))
+      rotate(var(--fall-spin, 180deg)) scale(1);
+    opacity: 0;
+  }
+}
+
+.flower-fall {
+  animation: flower-fall var(--fall-duration, 2s) cubic-bezier(0.3, 0, 0.6, 1)
+    both;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+}
+
+/* Ambient petals — slow continuous gentle drift inside deity band */
+@keyframes ambient-petal {
+  0% {
+    transform: translateY(-6vh) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.25;
+  }
+  85% {
+    opacity: 0.25;
+  }
+  100% {
+    transform: translateY(72vh) rotate(280deg);
+    opacity: 0;
+  }
+}
+
+.ambient-petal {
+  animation: ambient-petal 7s linear infinite;
+  will-change: transform, opacity;
+}
+
+/* Aarti plate flame glow */
+@keyframes aarti-plate-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 18px rgba(249, 168, 38, 0.7));
+  }
+  50% {
+    filter: drop-shadow(0 0 34px rgba(249, 115, 22, 0.95));
+  }
+}
+
+.aarti-plate-glow {
+  animation: aarti-plate-glow 1.1s ease-in-out infinite;
+}
+
+/* Faint dashed orbit guide for aarti rotation */
+.aarti-guide-ring {
+  border: 1.5px dashed rgba(254, 243, 199, 0.22);
+  border-radius: 50%;
+}
+
+/* Golden burst sparks on aarti completion */
+@keyframes aarti-burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--burst-x, 80px), var(--burst-y, -80px)) scale(0.1);
+    opacity: 0;
+  }
+}
+
+.aarti-burst-spark {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd886;
+  box-shadow: 0 0 14px rgba(255, 216, 134, 1);
+  animation: aarti-burst 1s ease-out forwards;
+}
+
+/* Dhoop incense smoke wisp */
+@keyframes smoke-rise {
+  0% {
+    transform: translateY(0) scaleX(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-220px) translateX(18px) scaleX(2.4);
+    opacity: 0;
+  }
+}
+
+.smoke-wisp {
+  width: 10px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(
+    to top,
+    rgba(254, 243, 199, 0.35),
+    rgba(254, 243, 199, 0)
+  );
+  filter: blur(5px);
+  animation: smoke-rise 3.4s ease-out infinite;
+}
