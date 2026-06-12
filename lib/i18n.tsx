@@ -44,8 +44,15 @@ const STRINGS: Dict = {
     hi: '🙏 आरती सम्पन्न — आपको आशीर्वाद मिला',
     en: '🙏 Aarti complete — you are blessed',
   },
-  diyaLit: { hi: '🪔 दीप प्रज्वलित', en: '🪔 Diya lit' },
+  diyaLit: { hi: '🪔 दीप आरती सम्पन्न', en: '🪔 Diya aarti complete' },
   shankhBlown: { hi: '🐚 शंखनाद', en: '🐚 Conch sounded' },
+  malaOffered: { hi: '📿 माला अर्पित', en: '📿 Mala offered' },
+  bhogOffered: { hi: '🍯 भोग अर्पित', en: '🍯 Bhog offered' },
+  bellRung: { hi: '🔔 घंटी बजाई गई', en: '🔔 Bell rung' },
+  swipeHint: {
+    hi: 'अगले देवता के लिए ऊपर स्वाइप करें',
+    en: 'Swipe up for next deity',
+  },
 }
 
 interface LangContextValue {

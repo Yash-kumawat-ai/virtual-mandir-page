@@ -32,45 +32,51 @@ const ACTIONS: {
     id: 'aarti',
     labelKey: 'aarti',
     icon: (
-      <img src="/images/thali.png" alt="" className="h-7 w-7 object-contain" />
+      <img
+        src="/images/puja-thali.png"
+        alt=""
+        className="h-7 w-7 object-contain"
+      />
     ),
   },
   {
     id: 'diya',
     labelKey: 'diya',
     icon: (
-      <img src="/images/diya.png" alt="" className="h-7 w-7 object-contain" />
+      <img
+        src="/images/diya-brass.png"
+        alt=""
+        className="h-7 w-7 object-contain"
+      />
     ),
   },
   {
     id: 'shankh',
     labelKey: 'shankh',
     icon: (
-      <img src="/images/shankh.png" alt="" className="h-7 w-7 object-contain" />
+      <img src="/images/conch.png" alt="" className="h-7 w-7 object-contain" />
     ),
   },
   {
     id: 'bell',
     labelKey: 'bell',
     icon: (
-      <img src="/images/bell.png" alt="" className="h-7 w-7 object-contain" />
+      <img
+        src="/images/bell-hand.png"
+        alt=""
+        className="h-7 w-7 object-contain"
+      />
     ),
   },
   {
     id: 'bhog',
     labelKey: 'bhog',
     icon: (
-      // Bhog laddu / sweet offering
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
-        <circle cx="12" cy="13" r="6" fill="#e9a23b" />
-        <circle cx="9.5" cy="11" r="1" fill="#c9802a" />
-        <circle cx="13.5" cy="10.5" r="1" fill="#c9802a" />
-        <circle cx="14" cy="14" r="1" fill="#c9802a" />
-        <circle cx="10" cy="15" r="1" fill="#c9802a" />
-        <circle cx="12" cy="13" r="1" fill="#c9802a" />
-        <path d="M12 7V4" stroke="#d4a853" strokeWidth="1.4" strokeLinecap="round" />
-        <circle cx="12" cy="3.5" r="1.2" fill="#f97316" />
-      </svg>
+      <img
+        src="/images/bhog/laddu.png"
+        alt=""
+        className="h-7 w-7 object-contain"
+      />
     ),
   },
   {
@@ -100,17 +106,7 @@ const ACTIONS: {
     id: 'mala',
     labelKey: 'mala',
     icon: (
-      // Prayer beads
-      <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" aria-hidden="true">
-        <circle cx="12" cy="5" r="1.7" fill="#d4a853" />
-        <circle cx="17.5" cy="8" r="1.7" fill="#d4a853" />
-        <circle cx="19" cy="14" r="1.7" fill="#d4a853" />
-        <circle cx="15.5" cy="19" r="1.7" fill="#d4a853" />
-        <circle cx="8.5" cy="19" r="1.7" fill="#d4a853" />
-        <circle cx="5" cy="14" r="1.7" fill="#d4a853" />
-        <circle cx="6.5" cy="8" r="1.7" fill="#d4a853" />
-        <circle cx="12" cy="22" r="1.4" fill="#f97316" />
-      </svg>
+      <img src="/images/mala.png" alt="" className="h-7 w-7 object-contain" />
     ),
   },
 ]

@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 
 /**
  * Zone-targeted flower system. Flowers fall ONLY within the deity band
- * (center ~72% width) and settle into 3 zones relative to the deity:
+ * (center ~78% width) and settle into 3 zones relative to the deity:
  * head (30%), chest (45%), feet (25%) — like real temple flower showers.
+ * The flower image is selectable (rose, lily, marigold, hibiscus, etc).
  */
 
 interface Flower {
@@ -21,7 +22,7 @@ interface Flower {
   duration: number
   sway: number
   spin: number
-  kind: 'marigold' | 'lotus'
+  image: string
 }
 
 const ZONES = [
@@ -49,29 +50,32 @@ function rand(min: number, max: number) {
   return min + Math.random() * (max - min)
 }
 
-function makeFlower(burst = false): Flower {
+function makeFlower(image: string, burst = false): Flower {
   const zone = pickZone()
   return {
     id: flowerId++,
     x: rand(zone.x[0], zone.x[1]),
     startY: rand(-12, -4),
     endY: rand(zone.endY[0], zone.endY[1]),
-    size: burst ? rand(22, 38) : rand(24, 42),
-    delay: burst ? rand(0, 0.35) : rand(0, 0.9),
-    duration: rand(1.6, 2.6),
-    sway: rand(-28, 28),
-    spin: rand(-220, 220),
-    kind: Math.random() > 0.32 ? 'marigold' : 'lotus',
+    size: burst ? rand(22, 38) : rand(26, 44),
+    delay: burst ? rand(0, 0.35) : rand(0, 1.1),
+    duration: rand(1.9, 3.0),
+    sway: rand(-34, 34),
+    spin: rand(-200, 200),
+    image,
   }
 }
 
 export function FlowerParticles({
   shower,
+  flowerImage,
   burst,
 }: {
-  /** increment to trigger a 14-16 flower shower */
+  /** increment to trigger a flower shower */
   shower: number
-  /** increment to trigger a 30 flower celebration burst */
+  /** which flower image falls during the shower */
+  flowerImage: string
+  /** increment to trigger a 30 flower celebration burst (mixed flowers) */
   burst: number
 }) {
   const [flowers, setFlowers] = useState<Flower[]>([])
@@ -81,25 +85,33 @@ export function FlowerParticles({
   useEffect(() => {
     if (shower === prevShower.current) return
     prevShower.current = shower
-    const batch = Array.from({ length: 15 }, () => makeFlower())
+    const batch = Array.from({ length: 16 }, () => makeFlower(flowerImage))
     setFlowers((prev) => [...prev, ...batch])
     const ids = new Set(batch.map((f) => f.id))
     const t = setTimeout(
       () => setFlowers((prev) => prev.filter((f) => !ids.has(f.id))),
-      4200,
+      4800,
     )
     return () => clearTimeout(t)
-  }, [shower])
+  }, [shower, flowerImage])
 
   useEffect(() => {
     if (burst === prevBurst.current) return
     prevBurst.current = burst
-    const batch = Array.from({ length: 30 }, () => makeFlower(true))
+    const mixed = [
+      '/images/marigold.png',
+      '/images/flowers/rose.png',
+      '/images/flower.png',
+      '/images/flowers/hibiscus.png',
+    ]
+    const batch = Array.from({ length: 30 }, (_, i) =>
+      makeFlower(mixed[i % mixed.length], true),
+    )
     setFlowers((prev) => [...prev, ...batch])
     const ids = new Set(batch.map((f) => f.id))
     const t = setTimeout(
       () => setFlowers((prev) => prev.filter((f) => !ids.has(f.id))),
-      4200,
+      4800,
     )
     return () => clearTimeout(t)
   }, [burst])
@@ -113,7 +125,7 @@ export function FlowerParticles({
       {flowers.map((f) => (
         <img
           key={f.id}
-          src={f.kind === 'marigold' ? '/images/marigold.png' : '/images/flower.png'}
+          src={f.image}
           alt=""
           className="flower-fall absolute"
           style={

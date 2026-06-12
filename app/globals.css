@@ -310,6 +310,28 @@
   animation: bell-ring 0.18s ease-in-out 6;
 }
 
+/* Continuous ringing for the hand-bell ritual overlay */
+.bell-ring-loop {
+  animation: bell-ring 0.35s ease-in-out infinite;
+}
+
+/* Swipe-up hint bounce */
+@keyframes swipe-hint-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+.swipe-hint-bounce {
+  animation: swipe-hint-bounce 1.6s ease-in-out infinite;
+}
+
 /* Golden bell spark */
 @keyframes bell-spark {
   0% {

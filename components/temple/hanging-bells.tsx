@@ -44,16 +44,16 @@ function Bell({
       onClick={ring}
       aria-label={`Ring ${side} temple bell`}
       className={`pointer-events-auto absolute top-0 z-30 flex flex-col items-center focus-visible:outline-none ${
-        side === 'left' ? 'left-[8%]' : 'right-[8%]'
+        side === 'left' ? 'left-[4%]' : 'right-[4%]'
       }`}
     >
       {/* Rope */}
-      <span className="block h-6 w-0.5 bg-gradient-to-b from-gold/70 to-gold/30" />
+      <span className="block h-7 w-0.5 bg-gradient-to-b from-gold/70 to-gold/30" />
       <span className="relative block">
         <img
           src="/images/bell.png"
           alt=""
-          className={`h-16 w-12 object-contain drop-shadow-[0_4px_12px_rgba(212,168,83,0.45)] sm:h-20 sm:w-14 ${
+          className={`h-24 w-[4.5rem] object-contain drop-shadow-[0_6px_16px_rgba(212,168,83,0.5)] sm:h-28 sm:w-20 ${
             ringing
               ? 'bell-ringing'
               : side === 'left'

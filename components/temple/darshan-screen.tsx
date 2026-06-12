@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown } from 'lucide-react'
+import { ChevronUp } from 'lucide-react'
 import { deities } from '@/lib/deities'
 import { useLang } from '@/lib/i18n'
 import {
@@ -20,30 +20,41 @@ import { HangingBells } from './hanging-bells'
 import { FlowerParticles } from './flower-particles'
 import { AartiOverlay } from './aarti-overlay'
 import { WorshipTray, type PujaAction } from './worship-tray'
-import { DeitySheet } from './deity-sheet'
+import { DeityStrip } from './deity-strip'
+import { FlowerPicker } from './flower-picker'
+import { BhogPicker } from './bhog-picker'
 
 const XP_KEY = 'mandir-bhakti-xp'
+const GATE_CLOSE_MS = 900
+const GATE_REOPEN_DELAY_MS = 280
 
 export function DarshanScreen() {
   const { t, lang, toggle } = useLang()
   const [gatesOpen, setGatesOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [deityVisible, setDeityVisible] = useState(true)
-  const [sheetOpen, setSheetOpen] = useState(false)
+  const [transitioning, setTransitioning] = useState(false)
 
   // Effects state
   const [shower, setShower] = useState(0)
+  const [flowerImage, setFlowerImage] = useState('/images/marigold.png')
   const [burst, setBurst] = useState(0)
   const [glowPulse, setGlowPulse] = useState(false)
   const [intenseGlow, setIntenseGlow] = useState(false)
   const [aartiOpen, setAartiOpen] = useState(false)
-  const [bhogActive, setBhogActive] = useState(false)
+  const [diyaOpen, setDiyaOpen] = useState(false)
+  const [flowerPickerOpen, setFlowerPickerOpen] = useState(false)
+  const [bhogPickerOpen, setBhogPickerOpen] = useState(false)
+  const [bhogImage, setBhogImage] = useState<string | null>(null)
   const [dhoopActive, setDhoopActive] = useState(false)
-  const [diyaActive, setDiyaActive] = useState(false)
+  const [bellActive, setBellActive] = useState(false)
+  const [malaActive, setMalaActive] = useState(false)
+  const [showSwipeHint, setShowSwipeHint] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
   const [xp, setXp] = useState(0)
 
   const glowTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const touchStartY = useRef<number | null>(null)
+  const wheelLock = useRef(false)
   const deity = deities[activeIndex]
 
   // Load XP
@@ -62,11 +73,15 @@ export function DarshanScreen() {
 
   // Gate-open hero animation on mount
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setGatesOpen(true)
       playBellChime()
     }, 600)
-    return () => clearTimeout(t)
+    const hintTimer = setTimeout(() => setShowSwipeHint(false), 6000)
+    return () => {
+      clearTimeout(timer)
+      clearTimeout(hintTimer)
+    }
   }, [])
 
   const pulseGlow = useCallback(() => {
@@ -80,39 +95,101 @@ export function DarshanScreen() {
     setTimeout(() => setToast(null), 2800)
   }, [])
 
-  // Deity switch — fade transition
-  const selectDeity = useCallback(
+  /**
+   * Reel-style deity change: gates close → deity switches behind the
+   * closed doors → gates reopen with a bell chime on the new god.
+   */
+  const changeDeity = useCallback(
     (index: number) => {
-      if (index === activeIndex) return
-      setDeityVisible(false)
+      if (transitioning || index === activeIndex) return
+      setTransitioning(true)
+      setShowSwipeHint(false)
+      setGatesOpen(false)
       setTimeout(() => {
         setActiveIndex(index)
-        setDeityVisible(true)
-        playFlowerTone()
-      }, 350)
+        setTimeout(() => {
+          setGatesOpen(true)
+          playBellChime()
+          setTimeout(() => setTransitioning(false), GATE_CLOSE_MS)
+        }, GATE_REOPEN_DELAY_MS)
+      }, GATE_CLOSE_MS)
     },
-    [activeIndex],
+    [transitioning, activeIndex],
+  )
+
+  const nextDeity = useCallback(
+    () => changeDeity((activeIndex + 1) % deities.length),
+    [changeDeity, activeIndex],
+  )
+  const prevDeity = useCallback(
+    () => changeDeity((activeIndex - 1 + deities.length) % deities.length),
+    [changeDeity, activeIndex],
+  )
+
+  const anyOverlayOpen =
+    aartiOpen || diyaOpen || flowerPickerOpen || bhogPickerOpen || bellActive
+
+  // Reel-style swipe: up = next deity, down = previous
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY
+  }, [])
+  const onTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (touchStartY.current === null || anyOverlayOpen) return
+      const dy = e.changedTouches[0].clientY - touchStartY.current
+      touchStartY.current = null
+      if (dy < -60) nextDeity()
+      else if (dy > 60) prevDeity()
+    },
+    [nextDeity, prevDeity, anyOverlayOpen],
+  )
+  const onWheel = useCallback(
+    (e: React.WheelEvent) => {
+      if (wheelLock.current || transitioning || anyOverlayOpen) return
+      if (Math.abs(e.deltaY) > 30) {
+        wheelLock.current = true
+        if (e.deltaY > 0) nextDeity()
+        else prevDeity()
+        setTimeout(() => {
+          wheelLock.current = false
+        }, 1600)
+      }
+    },
+    [transitioning, nextDeity, prevDeity, anyOverlayOpen],
   )
 
   const handleAction = useCallback(
     (action: PujaAction) => {
       switch (action) {
         case 'flowers':
-          playFlowerTone()
-          setShower((s) => s + 1)
-          pulseGlow()
-          addXp(5)
+          setFlowerPickerOpen(true)
           break
         case 'aarti':
           playAartiTone()
           setAartiOpen(true)
           break
-        case 'bhog':
-          playBhogTone()
-          setBhogActive(true)
+        case 'diya':
+          playDiyaTone()
+          setDiyaOpen(true)
+          break
+        case 'shankh':
+          playShankhTone()
+          setIntenseGlow(true)
+          addXp(10)
+          showToast(t('shankhBlown'))
+          setTimeout(() => setIntenseGlow(false), 2200)
+          break
+        case 'bell':
+          setBellActive(true)
+          playBellChime()
           pulseGlow()
           addXp(5)
-          setTimeout(() => setBhogActive(false), 2400)
+          setTimeout(() => playBellChime(), 700)
+          setTimeout(() => playBellChime(), 1400)
+          setTimeout(() => setBellActive(false), 2400)
+          break
+        case 'bhog':
+          setBhogPickerOpen(true)
           break
         case 'dhoop':
           playDhoopTone()
@@ -120,33 +197,38 @@ export function DarshanScreen() {
           addXp(5)
           setTimeout(() => setDhoopActive(false), 5000)
           break
-        case 'diya':
-          playDiyaTone()
-          setDiyaActive(true)
-          pulseGlow()
-          addXp(5)
-          showToast(t('diyaLit'))
-          setTimeout(() => setDiyaActive(false), 4000)
-          break
-        case 'shankh':
-          playShankhTone()
-          setIntenseGlow(true)
-          addXp(10)
-          showToast(t('shankhBlown'))
-          setTimeout(() => setIntenseGlow(false), 1100)
-          break
-        case 'bell':
-          playBellChime()
-          pulseGlow()
-          addXp(5)
-          break
         case 'mala':
           playMalaTone()
+          setMalaActive(true)
           pulseGlow()
-          setShower((s) => s + 1)
           addXp(5)
+          showToast(t('malaOffered'))
+          setTimeout(() => setMalaActive(false), 3000)
           break
       }
+    },
+    [pulseGlow, addXp, showToast, t],
+  )
+
+  const onFlowerSelect = useCallback(
+    (_id: string, image: string) => {
+      setFlowerImage(image)
+      setShower((s) => s + 1)
+      playFlowerTone()
+      pulseGlow()
+      addXp(5)
+    },
+    [pulseGlow, addXp],
+  )
+
+  const onBhogSelect = useCallback(
+    (_id: string, image: string) => {
+      setBhogImage(image)
+      playBhogTone()
+      pulseGlow()
+      addXp(5)
+      showToast(t('bhogOffered'))
+      setTimeout(() => setBhogImage(null), 2600)
     },
     [pulseGlow, addXp, showToast, t],
   )
@@ -159,6 +241,13 @@ export function DarshanScreen() {
     setTimeout(() => setIntenseGlow(false), 1100)
   }, [addXp, showToast, t])
 
+  const onDiyaComplete = useCallback(() => {
+    setIntenseGlow(true)
+    addXp(15)
+    showToast(t('diyaLit'))
+    setTimeout(() => setIntenseGlow(false), 1100)
+  }, [addXp, showToast, t])
+
   const deityFilter = intenseGlow
     ? 'drop-shadow(0 0 120px rgba(249,115,22,0.7))'
     : glowPulse
@@ -166,7 +255,12 @@ export function DarshanScreen() {
       : `drop-shadow(0 0 40px ${deity.glow})`
 
   return (
-    <div className="relative mx-auto h-svh w-full max-w-md overflow-hidden bg-[#0d0705]">
+    <div
+      className="relative mx-auto h-svh w-full max-w-md overflow-hidden bg-[#0d0705]"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onWheel={onWheel}
+    >
       {/* LAYER 1: Temple background — subtle radial warmth */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_42%,#3d1a08_0%,#1d0e06_55%,#0d0705_100%)]" />
 
@@ -177,24 +271,22 @@ export function DarshanScreen() {
       />
 
       {/* LAYER 3: DEITY — fills the entire darshan area, face at top */}
-      <div className="absolute top-[76px] right-0 bottom-20 left-0 z-10">
+      <div className="absolute top-[80px] right-0 bottom-20 left-0 z-10">
         <AnimatePresence mode="wait">
-          {deityVisible && (
-            <motion.img
-              key={deity.id}
-              src={deity.image}
-              alt={`${deity.nameEnglish} darshan`}
-              initial={{ opacity: 0, scale: 1.05 }}
-              animate={{ opacity: gatesOpen ? 1 : 0, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-              className="h-full w-full object-cover object-top"
-              style={{
-                filter: deityFilter,
-                transition: 'filter 0.3s ease-out',
-              }}
-            />
-          )}
+          <motion.img
+            key={deity.id}
+            src={deity.image}
+            alt={`${deity.nameEnglish} darshan`}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: gatesOpen ? 1 : 0.4, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="h-full w-full object-cover object-top"
+            style={{
+              filter: deityFilter,
+              transition: 'filter 0.3s ease-out',
+            }}
+          />
         </AnimatePresence>
         {/* Warm vignette so edges melt into the temple darkness */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_38%,transparent_52%,rgba(13,7,5,0.82)_100%)]" />
@@ -226,10 +318,7 @@ export function DarshanScreen() {
             opacity="0.8"
           />
           {/* Kalash at center */}
-          <path
-            d="M195 22l-7 12h14l-7-12z"
-            fill="#d4a853"
-          />
+          <path d="M195 22l-7 12h14l-7-12z" fill="#d4a853" />
           <circle cx="195" cy="18" r="3.5" fill="#f97316" />
         </svg>
       </div>
@@ -238,7 +327,7 @@ export function DarshanScreen() {
       <HangingBells onRing={() => addXp(5)} />
 
       {/* LAYER 6: Flowers — deity zones only */}
-      <FlowerParticles shower={shower} burst={burst} />
+      <FlowerParticles shower={shower} flowerImage={flowerImage} burst={burst} />
 
       {/* Dhoop smoke wisps near deity feet */}
       {dhoopActive && (
@@ -259,33 +348,53 @@ export function DarshanScreen() {
         </div>
       )}
 
-      {/* Bhog thali rises to deity feet */}
+      {/* Selected bhog rises to deity feet */}
       <AnimatePresence>
-        {bhogActive && (
+        {bhogImage && (
           <motion.img
-            src="/images/thali.png"
+            src={bhogImage}
             alt=""
             initial={{ opacity: 0, y: 120, scale: 0.6 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.85 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="pointer-events-none absolute bottom-24 left-1/2 z-30 h-24 w-24 -translate-x-1/2 object-contain drop-shadow-[0_0_24px_rgba(249,115,22,0.5)]"
+            className="pointer-events-none absolute bottom-24 left-1/2 z-30 h-28 w-28 -translate-x-1/2 object-contain drop-shadow-[0_0_24px_rgba(249,115,22,0.5)]"
           />
         )}
       </AnimatePresence>
 
-      {/* Diya flame glows at deity feet */}
+      {/* Mala garland descends onto the deity */}
       <AnimatePresence>
-        {diyaActive && (
+        {malaActive && (
           <motion.img
-            src="/images/diya.png"
+            src="/images/mala.png"
             alt=""
-            initial={{ opacity: 0, y: 60, scale: 0.7 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
-            className="diya-glow pointer-events-none absolute bottom-24 left-1/2 z-30 h-20 w-20 -translate-x-1/2 object-contain"
+            initial={{ opacity: 0, y: -180, scale: 0.55, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
+            exit={{ opacity: 0, x: '-50%' }}
+            transition={{ duration: 0.85, ease: 'easeOut' }}
+            className="pointer-events-none absolute top-[24%] left-1/2 z-30 w-[58%] object-contain drop-shadow-[0_0_28px_rgba(249,160,40,0.45)]"
           />
+        )}
+      </AnimatePresence>
+
+      {/* Hand bell rings in from below */}
+      <AnimatePresence>
+        {bellActive && (
+          <motion.div
+            initial={{ opacity: 0, y: 260 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 140 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="pointer-events-none absolute inset-x-0 bottom-28 z-40 flex justify-center"
+          >
+            <img
+              src="/images/bell-hand.png"
+              alt=""
+              className="bell-ring-loop h-44 w-auto object-contain drop-shadow-[0_0_36px_rgba(212,168,83,0.65)]"
+              style={{ transformOrigin: 'top center' }}
+            />
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -293,58 +402,67 @@ export function DarshanScreen() {
       <header className="absolute top-0 right-0 left-0 z-50 flex h-11 items-center justify-between px-3">
         <button
           type="button"
-          onClick={() => setSheetOpen(true)}
-          className="flex items-center gap-1 rounded-full border border-gold/30 bg-black/35 px-3 py-1 font-serif text-xs text-cream backdrop-blur-sm"
+          onClick={toggle}
+          aria-label="Toggle language"
+          className="rounded-full border border-gold/30 bg-black/35 px-2.5 py-1 font-serif text-xs text-cream backdrop-blur-sm transition-colors active:bg-saffron/30"
         >
-          {t('changeDeity')}
-          <ChevronDown className="h-3 w-3" />
-        </button>
-        <motion.h1
-          key={`${deity.id}-${lang}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute left-1/2 -translate-x-1/2 font-serif text-base text-gold drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]"
-        >
-          {lang === 'hi' ? deity.nameHindi : deity.nameEnglish}
-        </motion.h1>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={toggle}
-            aria-label="Toggle language"
-            className="rounded-full border border-gold/30 bg-black/35 px-2.5 py-1 font-serif text-xs text-cream backdrop-blur-sm transition-colors active:bg-saffron/30"
-          >
-            <span className={lang === 'hi' ? 'text-saffron' : 'text-cream-muted'}>
-              {'हिं'}
-            </span>
-            <span className="mx-1 text-gold/40">{'/'}</span>
-            <span className={lang === 'en' ? 'text-saffron' : 'text-cream-muted'}>
-              {'EN'}
-            </span>
-          </button>
-          <span className="rounded-full border border-gold/30 bg-black/35 px-2.5 py-1 text-xs text-gold backdrop-blur-sm">
-            {`🙏 ${xp}`}
+          <span className={lang === 'hi' ? 'text-saffron' : 'text-cream-muted'}>
+            {'हिं'}
           </span>
-        </div>
+          <span className="mx-1 text-gold/40">{'/'}</span>
+          <span className={lang === 'en' ? 'text-saffron' : 'text-cream-muted'}>
+            {'EN'}
+          </span>
+        </button>
+        <motion.p
+          key={`${deity.id}-jaikara`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: gatesOpen ? 1 : 0 }}
+          transition={{ delay: 0.4 }}
+          className="om-pulse absolute left-1/2 -translate-x-1/2 font-serif text-sm text-saffron drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]"
+        >
+          {deity.jaikara}
+        </motion.p>
+        <span className="rounded-full border border-gold/30 bg-black/35 px-2.5 py-1 text-xs text-gold backdrop-blur-sm">
+          {`🙏 ${xp}`}
+        </span>
       </header>
 
-      {/* Jaikara below header */}
-      <motion.p
-        key={`${deity.id}-jaikara`}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: gatesOpen ? 1 : 0 }}
-        transition={{ delay: 0.6 }}
-        className="om-pulse absolute top-12 right-0 left-0 z-30 text-center font-serif text-sm text-saffron"
-      >
-        {deity.jaikara}
-      </motion.p>
+      {/* All deities listed at top — scrollable, tap to switch */}
+      <DeityStrip activeIndex={activeIndex} onSelect={changeDeity} />
 
-      {/* Aarti rotation interaction */}
+      {/* Swipe hint — fades out after a few seconds */}
+      <AnimatePresence>
+        {showSwipeHint && gatesOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ delay: 1.2 }}
+            className="pointer-events-none absolute bottom-24 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-0.5"
+          >
+            <ChevronUp className="swipe-hint-bounce h-4 w-4 text-cream/70" />
+            <p className="text-[11px] text-cream/70">{t('swipeHint')}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Aarti — auto-rotating thali */}
       <AartiOverlay
         open={aartiOpen}
+        image="/images/puja-thali.png"
         onProgress={pulseGlow}
         onComplete={onAartiComplete}
         onClose={() => setAartiOpen(false)}
+      />
+
+      {/* Diya — auto-rotating like aarti */}
+      <AartiOverlay
+        open={diyaOpen}
+        image="/images/diya-brass.png"
+        onProgress={pulseGlow}
+        onComplete={onDiyaComplete}
+        onClose={() => setDiyaOpen(false)}
       />
 
       {/* Completion toast */}
@@ -362,20 +480,27 @@ export function DarshanScreen() {
         )}
       </AnimatePresence>
 
-      {/* LAYER 7: Bottom worship tray — 5 actions, 80px */}
-      <WorshipTray onAction={handleAction} disabled={!gatesOpen || aartiOpen} />
+      {/* LAYER 7: Bottom worship tray — scrollable rituals */}
+      <WorshipTray
+        onAction={handleAction}
+        disabled={!gatesOpen || aartiOpen || diyaOpen || transitioning}
+      />
 
-      {/* Temple gates hero animation (above all darshan layers, below header) */}
+      {/* Temple gates (above all darshan layers, below header) */}
       <div className="absolute inset-0 z-[55] pointer-events-none">
         <TempleGates open={gatesOpen} />
       </div>
 
-      {/* Deity selector bottom sheet */}
-      <DeitySheet
-        open={sheetOpen}
-        activeIndex={activeIndex}
-        onSelect={selectDeity}
-        onClose={() => setSheetOpen(false)}
+      {/* Flower & bhog pickers */}
+      <FlowerPicker
+        open={flowerPickerOpen}
+        onSelect={onFlowerSelect}
+        onClose={() => setFlowerPickerOpen(false)}
+      />
+      <BhogPicker
+        open={bhogPickerOpen}
+        onSelect={onBhogSelect}
+        onClose={() => setBhogPickerOpen(false)}
       />
     </div>
   )
