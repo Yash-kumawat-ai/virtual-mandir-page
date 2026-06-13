@@ -271,7 +271,7 @@ export function DarshanScreen() {
       />
 
       {/* LAYER 3: DEITY — fills the entire darshan area, face at top */}
-      <div className="absolute top-[80px] right-0 bottom-20 left-0 z-10">
+      <div className="absolute top-44 right-2 bottom-20 left-2 z-10">
         <AnimatePresence mode="wait">
           <motion.img
             key={deity.id}
@@ -399,17 +399,17 @@ export function DarshanScreen() {
       </AnimatePresence>
 
       {/* Header — minimal, 44px */}
-      <header className="absolute top-0 right-0 left-0 z-50 flex h-11 items-center justify-between px-3">
+      <header className="absolute top-0 right-0 left-0 z-50 flex h-11 items-center justify-between px-3 border-b border-gold/15">
         <button
           type="button"
           onClick={toggle}
           aria-label="Toggle language"
-          className="rounded-full border border-gold/30 bg-black/35 px-2.5 py-1 font-serif text-xs text-cream backdrop-blur-sm transition-colors active:bg-saffron/30"
+          className="rounded-full border border-gold/30 bg-black/40 px-2.5 py-1 font-serif text-xs text-cream backdrop-blur-sm transition-colors active:bg-saffron/30"
         >
           <span className={lang === 'hi' ? 'text-saffron' : 'text-cream-muted'}>
             {'हिं'}
           </span>
-          <span className="mx-1 text-gold/40">{'/'}</span>
+          <span className="mx-0.5 text-gold/40">{'/'}</span>
           <span className={lang === 'en' ? 'text-saffron' : 'text-cream-muted'}>
             {'EN'}
           </span>
@@ -419,12 +419,12 @@ export function DarshanScreen() {
           initial={{ opacity: 0 }}
           animate={{ opacity: gatesOpen ? 1 : 0 }}
           transition={{ delay: 0.4 }}
-          className="om-pulse absolute left-1/2 -translate-x-1/2 font-serif text-sm text-saffron drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]"
+          className="om-pulse flex-1 text-center font-serif text-sm text-saffron drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)]"
         >
           {deity.jaikara}
         </motion.p>
-        <span className="rounded-full border border-gold/30 bg-black/35 px-2.5 py-1 text-xs text-gold backdrop-blur-sm">
-          {`🙏 ${xp}`}
+        <span className="rounded-full border border-gold/30 bg-black/40 px-2.5 py-1 text-xs text-gold backdrop-blur-sm">
+          {`🪔 ${xp}`}
         </span>
       </header>
 

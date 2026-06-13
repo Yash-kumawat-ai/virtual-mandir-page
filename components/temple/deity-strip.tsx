@@ -33,34 +33,32 @@ export function DeityStrip({
   return (
     <nav
       aria-label="Deities"
-      className="absolute top-11 right-0 left-0 z-50 h-9"
+      className="absolute top-11 right-0 left-0 z-50 h-10 border-y border-gold/20 bg-black/25 backdrop-blur-sm"
     >
       <ul
         ref={listRef}
-        className="no-scrollbar flex h-full items-center gap-6 overflow-x-auto px-5"
+        className="no-scrollbar flex h-full items-center justify-center gap-3 overflow-x-auto px-4"
       >
         {deities.map((deity, i) => (
-          <li key={deity.id} className="shrink-0">
+          <li key={deity.id} className="shrink-0 flex items-center gap-2.5">
+            {i > 0 && (
+              <span className="text-gold/40 text-lg leading-none">•</span>
+            )}
             <button
               type="button"
               onClick={() => onSelect(i)}
               aria-current={i === activeIndex ? 'true' : undefined}
-              className="flex flex-col items-center gap-0.5 focus-visible:outline-none"
+              className="flex items-center gap-0.5 focus-visible:outline-none px-2 py-1"
             >
               <span
-                className={`font-serif text-sm whitespace-nowrap transition-colors duration-200 ${
+                className={`font-serif text-xs whitespace-nowrap transition-colors duration-200 ${
                   i === activeIndex
-                    ? 'text-saffron drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]'
-                    : 'text-cream-muted'
+                    ? 'text-saffron drop-shadow-[0_0_8px_rgba(249,115,22,0.6)] font-bold'
+                    : 'text-cream-muted hover:text-cream/70'
                 }`}
               >
                 {lang === 'hi' ? deity.nameHindi : deity.nameEnglish}
               </span>
-              <span
-                className={`h-1 w-1 rounded-full transition-all duration-200 ${
-                  i === activeIndex ? 'bg-saffron' : 'bg-transparent'
-                }`}
-              />
             </button>
           </li>
         ))}

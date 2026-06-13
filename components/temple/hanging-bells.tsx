@@ -43,17 +43,17 @@ function Bell({
       type="button"
       onClick={ring}
       aria-label={`Ring ${side} temple bell`}
-      className={`pointer-events-auto absolute top-0 z-30 flex flex-col items-center focus-visible:outline-none ${
-        side === 'left' ? 'left-[4%]' : 'right-[4%]'
+      className={`pointer-events-auto absolute top-16 z-30 flex flex-col items-center focus-visible:outline-none ${
+        side === 'left' ? 'left-2' : 'right-2'
       }`}
     >
-      {/* Rope */}
-      <span className="block h-7 w-0.5 bg-gradient-to-b from-gold/70 to-gold/30" />
+      {/* Rope — thicker for bigger bell */}
+      <span className="block h-16 w-1 bg-gradient-to-b from-gold/80 to-gold/40" />
       <span className="relative block">
         <img
           src="/images/bell.png"
           alt=""
-          className={`h-24 w-[4.5rem] object-contain drop-shadow-[0_6px_16px_rgba(212,168,83,0.5)] sm:h-28 sm:w-20 ${
+          className={`h-40 w-32 object-contain drop-shadow-[0_8px_24px_rgba(212,168,83,0.6)] ${
             ringing
               ? 'bell-ringing'
               : side === 'left'
@@ -77,7 +77,7 @@ function Bell({
         ))}
         {/* Floating karma text */}
         {karma && (
-          <span className="karma-float absolute -top-2 left-1/2 -translate-x-1/2 font-serif text-sm whitespace-nowrap text-gold">
+          <span className="karma-float absolute -top-3 left-1/2 -translate-x-1/2 font-serif text-sm whitespace-nowrap text-gold">
             {'+5 🙏'}
           </span>
         )}
@@ -88,7 +88,7 @@ function Bell({
 
 export function HangingBells({ onRing }: { onRing: () => void }) {
   return (
-    <div className="pointer-events-none absolute top-10 right-0 left-0 z-30 h-28">
+    <div className="pointer-events-none absolute top-0 right-0 left-0 z-30 h-72">
       <Bell side="left" onRing={onRing} />
       <Bell side="right" onRing={onRing} />
     </div>
