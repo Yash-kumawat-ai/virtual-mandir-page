@@ -20,8 +20,13 @@ interface Flower {
   size: number
   delay: number
   duration: number
-  sway: number
-  spin: number
+  swayLeft: number
+  swayRight: number
+  swayFinal: number
+  spin1: number
+  spin2: number
+  spin3: number
+  spinFinal: number
   image: string
 }
 
@@ -52,6 +57,7 @@ function rand(min: number, max: number) {
 
 function makeFlower(image: string, burst = false): Flower {
   const zone = pickZone()
+  const swayAmount = burst ? rand(8, 16) : rand(10, 20)
   return {
     id: flowerId++,
     x: rand(zone.x[0], zone.x[1]),
@@ -59,9 +65,16 @@ function makeFlower(image: string, burst = false): Flower {
     endY: rand(zone.endY[0], zone.endY[1]),
     size: burst ? rand(22, 38) : rand(26, 44),
     delay: burst ? rand(0, 0.35) : rand(0, 1.1),
-    duration: rand(1.9, 3.0),
-    sway: rand(-34, 34),
-    spin: rand(-200, 200),
+    duration: burst ? rand(2.2, 3.2) : rand(2.6, 3.6),
+    // Gentle alternating sway left-right during fall
+    swayLeft: -swayAmount,
+    swayRight: swayAmount,
+    swayFinal: rand(-6, 6),
+    // Smooth rotation progression: 0 → ~45 → ~135 → ~225 → ~360
+    spin1: rand(20, 80),
+    spin2: rand(100, 160),
+    spin3: rand(180, 240),
+    spinFinal: rand(320, 400),
     image,
   }
 }
@@ -135,30 +148,16 @@ export function FlowerParticles({
               width: f.size,
               height: f.size,
               animationDelay: `${f.delay}s`,
+              animationDuration: `${f.duration}s`,
               '--fall-start': `${f.startY}vh`,
               '--fall-end': `${f.endY}vh`,
-              '--fall-sway': `${f.sway}px`,
-              '--fall-spin': `${f.spin}deg`,
-              '--fall-duration': `${f.duration}s`,
-            } as React.CSSProperties
-          }
-        />
-      ))}
-
-      {/* Ambient petals — always on, very subtle, inside deity band */}
-      {[0, 1, 2].map((i) => (
-        <img
-          key={`ambient-${i}`}
-          src="/images/flower.png"
-          alt=""
-          className="ambient-petal absolute"
-          style={
-            {
-              left: `${20 + i * 28}%`,
-              width: 18,
-              height: 18,
-              animationDelay: `${i * 2.6}s`,
-              animationDuration: `${6.5 + i * 1.2}s`,
+              '--fall-sway-left': `${f.swayLeft}px`,
+              '--fall-sway-right': `${f.swayRight}px`,
+              '--fall-sway-final': `${f.swayFinal}px`,
+              '--fall-spin-1': `${f.spin1}deg`,
+              '--fall-spin-2': `${f.spin2}deg`,
+              '--fall-spin-3': `${f.spin3}deg`,
+              '--fall-spin-final': `${f.spinFinal}deg`,
             } as React.CSSProperties
           }
         />
